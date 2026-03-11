@@ -16,9 +16,10 @@ class App extends Component {
         try {
             const res = await axios.get("/welcome");
             this.setState({ serverStatus: "ONLINE ✅" });
-        } catch (error) {
+            } catch (error) {
             console.log("Server not responding", error);
-        }
+            this.setState({ serverStatus: "OFFLINE ❌" }); // Add this!
+           }
     };
 
     render() {
