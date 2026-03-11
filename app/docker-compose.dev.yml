@@ -9,11 +9,16 @@ services:
     environment:
       - REACT_APP_PORT=3000
       - CHOKIDAR_USEPOLLING=true
+      - NODE_OPTIONS=--openssl-legacy-provider
+      - HOST=0.0.0.0  # Tells React to listen for the Codespace Proxy
+    ports:
+      - "3000:3000"  # <--- MAPS HOST 3000 TO CONTAINER 3000
     image: client
     command: npm run start
     restart: "no"
-    stdin_open: true
-  
+    stdin_open: true # Keeps the input stream open
+    tty: true        # ATTACH A VIRTUAL TERMINAL (This stops the crash)
+
   server:
     build:
       context: ./server
@@ -23,6 +28,10 @@ services:
       - MONGO_URI=$MONGO_URI
       - PORT=$SRV_PORT
       - NODE_ENV=$NODE_ENV
+      - HOST=0.0.0.0
+      - WDS_SOCKET_PORT=0
+    ports:
+      - "4000:4000"
     volumes:
       - ./server/src:/app/server/src
     restart: "no"
@@ -31,3 +40,16 @@ services:
     image: mongo
     restart: "no"
     
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # <--- This links the two
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000" # We map it to 3001 so it doesn't clash with React
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
