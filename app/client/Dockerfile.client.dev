@@ -1,10 +1,17 @@
-FROM node
+# 1. Use a specific version (node:20 is stable)
+FROM node:20
 
-
+# 2. Set the working directory
 WORKDIR /app/client
 
-COPY . .
+# 3. Copy ONLY the dependency list first
+COPY package.json yarn.lock ./
 
+# 4. Install libraries (This layer stays cached if you only change code!)
 RUN yarn install
 
+# 5. Now copy the actual source code
+COPY . .
+
+# 6. Start the app
 CMD ["yarn", "start"]
