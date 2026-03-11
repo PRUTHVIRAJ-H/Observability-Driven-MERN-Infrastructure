@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({ name: String }, { timestamps: true });
 const User = mongoose.model("User", userSchema);
 
 const app = express();
+app.use(express.json());
 
 // --- Database Connection Logic ---
 const options = {
@@ -29,38 +30,56 @@ const conn = () => {
     mongoose.connect(mongoUri, options)
         .catch(err => {
             // This is just the initial handshake error handling
+            console.log("Error in Moongggose creation")
         });
 };
 
-const db = mongoose.connection;
-
-db.on("error", err => {
-    console.log("Database connection error. Retrying in 5s...");
-    dbCallsFailTotal.inc(); 
-    setTimeout(conn, 5000); // Retry logic
-});
-
-db.once("open", () => {
-    dbCallsSuccessTotal.inc();
-    console.log("Successfully connected to the database");
-
-    // Seed data ONLY after connection is established
-    const user = new User({ name: "Pedro Tavares" });
-    user.save()
-        .then(u => console.log(`${u.name} saved to database`))
-        .catch(e => console.log("Seeding failed:", e));
-});
-
-// Start initial connection
 conn();
 
 // --- Routes ---
-app.get("/welcome", async (req, res) => {
+app.post("/user/add", async (req, res) => {
     try {
-        const users = await User.find().exec();
-        appCallsTotal.inc();
-        res.send(`Hello Client! Record found for: ${users[0]?.name || "No records"}`);
+        // 1. Logic: Just create and save. The global 'conn()' handled the link.
+        const newUser = new User({ name: req.body.name }); 
+        const savedUser = await newUser.save(); 
+        
+        // 2. Telemetry: Record the success for Grafana
+        dbCallsSuccessTotal.inc();
+        console.log(`${savedUser.name} saved to database`);
+
+        // 3. Response: Send back the confirmation
+        res.status(201).send(`${req.body.name} added to the System!`);
     } catch (err) {
+        // 4. Fault Tolerance: Record the failure
+        dbCallsFailTotal.inc();
+        console.log("Saving failed:", err);
+        res.status(500).send("Failed to add user");
+    }
+});
+
+
+app.get("/user", async (req, res) => {
+    try {
+        const userName = req.query.name; // Picks 'name' from the URL
+        let user;
+
+        if (userName) {
+            // Find specific user by name
+            user = await User.findOne({ name: userName }).exec();
+        } else {
+            // Fallback: Get the latest record if no name is provided
+            user = await User.findOne().sort({ createdAt: -1 }).exec();
+        }
+
+        appCallsTotal.inc(); // Telemetry: Count the API hit
+        
+        if (!user) {
+            return res.send("Welcome! No records found in the database yet.");
+        }
+
+        res.send(`Hello Client! Record found for: ${user.name} (ID: ${user._id})`);
+    } catch (err) {
+        dbCallsFailTotal.inc(); // Telemetry: Count the DB error
         res.status(500).send("Error fetching from DB");
     }
 });
