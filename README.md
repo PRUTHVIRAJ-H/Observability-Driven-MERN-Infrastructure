@@ -4,11 +4,7 @@
 
 CI/CD pipelines allow for a fast response to business needs, while other DevOps practices support stable, secure and predictable services, striking the perfect balance  between stability and the speed of change.
 
-This is a final project by Pedro Tavares for a DevOps Bootcamp course at [GeeksHubs Academy](https://geekshubsacademy.com/) (in Spanish).
-
 It creates a Continuous Delivery pipeline for a JavaScript/MERN application, with **development**, **staging** and **production** environments, tests and monitoring.
-
-![CI/CD pipeline](https://github.com/ptavaressilva/MERN_app_CI-CD_pipeline/blob/master/img/pipeline.png?raw=true)
 
 ### Requirements and coverage
 
@@ -19,8 +15,6 @@ It creates a Continuous Delivery pipeline for a JavaScript/MERN application, wit
 - [x] Pushing to master must trigger a pipeline that terminates with a deployment to production (Continuous Delivery)
 - [x] The pipeline must include Development, Staging and Production environments
 - [x] The system must include application and infrastructure monitoring, and a dashboard
-
-*The actual software application falls outside the scope of this project.*
 
 ### The Technological Stack
 
@@ -397,14 +391,5 @@ Testing
 
 - Tests were implemented as proof of concept. There is only one unit test, one integration test and one smoke test. In a normal operation, code coverage can be an indicator of the minimum number of unit tests that should. There would also be many more unit tests than integration and end-to-end tests.
 
-- Other types of tests should be incorporated, including stress tests, Fuzz tests and Soak tests.
 
-Bottlenecks
 
-- Concurrent pipeline exec of how many unit test ution is not safe at this stage. Further testing is required.
-
-- The pipeline takes far too long to run. Work should be done to take it down to five minutes at most.
-
-We'll... I hope you find this project usefull.
-
-Feel free to contribute.
