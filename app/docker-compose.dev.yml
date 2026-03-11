@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client.dev
+    environment:
+      - REACT_APP_PORT=3000
+      - CHOKIDAR_USEPOLLING=true
+    image: client
+    command: npm run start
+    restart: "no"
+    stdin_open: true
+  
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.server.dev
+    image: server
+    environment:
+      - MONGO_URI=$MONGO_URI
+      - PORT=$SRV_PORT
+      - NODE_ENV=$NODE_ENV
+    volumes:
+      - ./server/src:/app/server/src
+    restart: "no"
+  
+  db:
+    image: mongo
+    restart: "no"
+    

@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client.staging
+    image: client
+    ports:
+      - "8080:8080"
+    stdin_open: true
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.server.staging
+    image: server
+    environment:
+      - MONGO_URI=$MONGO_URI
+      - PORT=$SRV_PORT
+      - NODE_ENV=$NODE_ENV
+    command: node src/server.js
+
+  db:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    volumes:
+      - db_staging:/data/db
+
+volumes:
+  db_staging:

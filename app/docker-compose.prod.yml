@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  client:
+    image: localhost:5000/client_${GIT_COMMIT}
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+    ports:
+      - "80:8080"
+    stdin_open: true
+
+  server:
+    image: localhost:5000/server_${GIT_COMMIT}
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+    # environment:
+    #   - MONGO_URI=$MONGO_URI
+    #   - PORT=$SRV_PORT
+    #   - NODE_ENV=$NODE_ENV
+    command: node src/server.js
+
+  db:
+    image: localhost:5000/db_${GIT_COMMIT}
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+    #   MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    volumes:
+      - db_prod:/data/db
+
+volumes:
+  db_prod:

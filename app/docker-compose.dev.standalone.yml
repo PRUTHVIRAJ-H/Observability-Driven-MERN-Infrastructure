@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client.dev
+    environment:
+      - REACT_APP_PORT=3000
+      - CHOKIDAR_USEPOLLING=true
+    image: client
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client/src:/app/client/src
+      - ./client/public:/app/client/public
+    command: npm run start
+    restart: always
+    stdin_open: true
+  
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.server.dev
+    image: server
+    environment:
+      - MONGO_URI=mongodb://db:27017/db
+      - PORT=4000
+      - NODE_ENV=development
+    ports:
+      - 4000:4000
+    volumes:
+      - ./server/src:/app/server/src
+    restart: always
+  
+  db:
+    image: mongo
+    ports:
+      - 27017:27017
+    restart: always
