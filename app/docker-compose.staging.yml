@@ -1,26 +1,31 @@
 version: "3.8"
 
 services:
-
   client:
     build:
       context: ./client
       dockerfile: Dockerfile.client.staging
-    image: client
+    image: client:staging
     ports:
-      - "8080:8080"
+      - "3000:3000"  # Blueprint: Map host 3000 to Nginx 3000
     stdin_open: true
+    depends_on:
+      - server
 
   server:
     build:
       context: ./server
       dockerfile: Dockerfile.server.staging
-    image: server
+    image: server:staging
     environment:
       - MONGO_URI=$MONGO_URI
-      - PORT=$SRV_PORT
-      - NODE_ENV=$NODE_ENV
+      - PORT=4000     # Blueprint: Consistent port
+      - NODE_ENV=staging
+    ports:
+      - "4000:4000"
     command: node src/server.js
+    depends_on:
+      - db
 
   db:
     image: mongo
@@ -29,6 +34,25 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
     volumes:
       - db_staging:/data/db
+
+  # ADDED: Telemetry Stack for Staging
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9000:9090"  # Blueprint: Port 9000
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - server
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "5000:3000"  # Blueprint: Port 5000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
 
 volumes:
   db_staging:
