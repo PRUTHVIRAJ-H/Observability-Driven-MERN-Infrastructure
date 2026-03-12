@@ -12,6 +12,7 @@ const mongoUri = process.env.MONGO_URI || "mongodb://db:27017/mydatabase";
 
 // --- Telemetry Counter ---
 const registrationCounter = new Prometheus.Counter({
+    registrationCounter.inc(); 
     name: 'pruthviraj_registrations_total',
     help: 'Total number of times Pruthviraj has registered'
 });
