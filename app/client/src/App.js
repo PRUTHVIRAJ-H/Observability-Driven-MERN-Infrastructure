@@ -17,7 +17,7 @@ const App = () => {
     ];
 
     useEffect(() => {
-        axios.get(`${SERVER_URL}/user`)
+        axios.get(`${SERVER_URL}/`)
             .then(() => setIsOnline(true))
             .catch(() => setIsOnline(false));
     }, []);
@@ -27,12 +27,19 @@ const App = () => {
             
             {/* Header Area */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '20px', marginBottom: '30px' }}>
-                <h1 style={{ margin: 0 }}>PRUTHVIRAJ <span style={{ fontWeight: 300 }}>SYSTEMS</span></h1>
+                <h1 style={{ margin: 0 }}>SYSTEM <span style={{ fontWeight: 300 }}>MONITORING </span></h1>
                 <div style={{ padding: '8px 15px', borderRadius: '20px', backgroundColor: isOnline ? '#27ae6022' : '#e74c3c22', border: `1px solid ${isOnline ? '#27ae60' : '#e74c3c'}`, color: isOnline ? '#2ecc71' : '#e74c3c' }}>
-                    ● {isOnline ? "OPERATIONAL" : "DATABASE LINK BROKEN"}
+                    ● {isOnline ? "SERVER OPERATIONAL" : "SERVER LINK BROKEN"}
                 </div>
             </div>
 
+             <h3>ADD SYSTEMS</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '20px', marginBottom: '30px' }}>
+                  <div>
+                      <label for="Name">Server Name</label>
+                      <input type = 'text'>
+                 </div>
+            </div>
             {/* The Dashboard Grid using .map() */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
                 {dashboardPanels.map((panel) => (
@@ -51,7 +58,7 @@ const App = () => {
 
             {/* Footer / Quick Stats */}
             <div style={{ marginTop: '40px', padding: '20px', borderTop: '1px solid #333', textAlign: 'center', color: '#666' }}>
-                Telemetry Feed Active • Real-time Monitoring Enabled
+                Real-time Monitoring Enabled
             </div>
         </div>
     );
