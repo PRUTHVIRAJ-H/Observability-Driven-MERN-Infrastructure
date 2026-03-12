@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   client:
+    # Pulls from your local registry with the specific Git hash
     image: localhost:5000/client_${GIT_COMMIT}
     deploy:
       replicas: 3
@@ -9,8 +10,9 @@ services:
         parallelism: 1
         delay: 10s
     ports:
-      - "80:8080"
-    stdin_open: true
+      - "3000:3000"  # Blueprint: Client on 3000
+    networks:
+      - prod-network
 
   server:
     image: localhost:5000/server_${GIT_COMMIT}
@@ -19,24 +21,50 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-    # environment:
-    #   - MONGO_URI=$MONGO_URI
-    #   - PORT=$SRV_PORT
-    #   - NODE_ENV=$NODE_ENV
+    environment:
+      - MONGO_URI=mongodb://db:27017/telemetry_prod
+      - NODE_ENV=production
+    # Port 4000 is internal; if you need to hit it directly:
+    ports:
+      - "4000:4000"
     command: node src/server.js
+    networks:
+      - prod-network
 
   db:
-    image: localhost:5000/db_${GIT_COMMIT}
+    image: mongo:latest
     deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-    # environment:
-    #   MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
-    #   MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      replicas: 1  # DBs usually don't scale horizontally this easily
     volumes:
       - db_prod:/data/db
+    networks:
+      - prod-network
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9000:9090"  # Blueprint: Prometheus on 9000
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    deploy:
+      replicas: 1
+    networks:
+      - prod-network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "5000:3000"  # Blueprint: Grafana on 5000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    deploy:
+      replicas: 1
+    networks:
+      - prod-network
 
 volumes:
   db_prod:
+
+networks:
+  prod-network:
+    driver: overlay # Use 'overlay' for Swarm, 'bridge' for single-node Prod
