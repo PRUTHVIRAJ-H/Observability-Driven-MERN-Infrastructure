@@ -21,7 +21,7 @@ const App = () => {
         const checkStatus = async () => {
             try {
                 // Points to your updated /user route
-                await axios.get("http://localhost:4000/user");
+                await axios.get("https://improved-space-cod-q7pwvqvv477x369xv-4000.app.github.dev/");
                 setServerStatus("SYSTEM ONLINE ✅");
                 setIsOnline(true);
             } catch (error) {

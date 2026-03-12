@@ -36,6 +36,10 @@ const conn = () => {
 
 conn();
 
+const cors = require('cors');
+app.use(cors()); // Place this before your routes
+
+
 // --- Routes ---
 app.post("/user/add", async (req, res) => {
     try {

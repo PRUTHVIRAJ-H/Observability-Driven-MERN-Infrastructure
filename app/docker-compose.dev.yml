@@ -8,6 +8,10 @@ services:
     environment:
       - REACT_APP_PORT=3000
       - CHOKIDAR_USEPOLLING=true
+      - HOST=0.0.0.0
+      - WDS_SOCKET_PORT=0 # Helps with HMR in Codespaces
+      - NODE_OPTIONS=--openssl-legacy-provider
+      - HOST=0.0.0.0 # Ensures it works in Codespaces
     ports:
       - "3000:3000"
     volumes:
@@ -53,5 +57,8 @@ services:
       - "5000:3000" # Your Blueprint: Port 5000
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     depends_on:
       - prometheus
