@@ -1,0 +1,24 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    # Access mode 'proxy' means Grafana will route requests to Prometheus 
+    # through the Docker network.
+    access: proxy
+    
+    # SYSTEM LOGIC: We use the internal Docker service name and port.
+    # Even though you see it on Port 9000, Grafana sees it on 9090.
+    url: http://prometheus:9090 
+    
+    # Makes this the default source for all new panels
+    isDefault: true
+    
+    # Security: Prevents users from accidentally deleting the connection 
+    # through the Grafana UI on Port 5000.
+    editable: false
+
+    # Performance: How often Grafana should refresh its data query
+    jsonData:
+      httpMethod: POST
+      timeInterval: "5s"
