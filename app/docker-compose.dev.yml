@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  
   client:
     build:
       context: ./client
@@ -9,47 +8,50 @@ services:
     environment:
       - REACT_APP_PORT=3000
       - CHOKIDAR_USEPOLLING=true
-      - NODE_OPTIONS=--openssl-legacy-provider
-      - HOST=0.0.0.0  # Tells React to listen for the Codespace Proxy
     ports:
-      - "3000:3000"  # <--- MAPS HOST 3000 TO CONTAINER 3000
-    image: client
+      - "3000:3000"
+    volumes:
+      - ./client/src:/app/client/src
     command: npm run start
-    restart: "no"
-    stdin_open: true # Keeps the input stream open
-    tty: true        # ATTACH A VIRTUAL TERMINAL (This stops the crash)
+    stdin_open: true
+    tty: true
 
   server:
     build:
       context: ./server
       dockerfile: Dockerfile.server.dev
-    image: server
     environment:
-      - MONGO_URI=$MONGO_URI
-      - PORT=$SRV_PORT
-      - NODE_ENV=$NODE_ENV
-      - HOST=0.0.0.0
-      - WDS_SOCKET_PORT=0
+      - MONGO_URI=mongodb://db:27017/telemetry_db
+      - PORT=4000
     ports:
       - "4000:4000"
     volumes:
       - ./server/src:/app/server/src
-    restart: "no"
-  
+    depends_on:
+      - db
+
   db:
     image: mongo
-    restart: "no"
-    
+    ports:
+      - "27017:27017"
+    restart: always
+
   prometheus:
     image: prom/prometheus
+    container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml # <--- This links the two
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "9000:9090" # Your Blueprint: Port 9000
+    depends_on:
+      - server
 
   grafana:
     image: grafana/grafana
+    container_name: grafana
     ports:
-      - "3001:3000" # We map it to 3001 so it doesn't clash with React
+      - "5000:3000" # Your Blueprint: Port 5000
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
