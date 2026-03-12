@@ -1,40 +1,35 @@
+# STAGE 1: The Builder (The "Construction Site")
 FROM node:10.13.0-alpine as builder
 
 WORKDIR /app/server
 
-COPY package*.json .
-COPY yarn* .
+# Copy dependency files first for caching
+COPY package*.json ./
+COPY yarn* ./
 
-ENV MONGO_URI=$MONGO_URI
-ENV PORT=$SRV_PORT
-ENV NODE_ENV=$NODE_ENV
+# Install build tools for native modules (like bcrypt)
+# We keep these only in this stage to keep the final image small
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    python \
+    && yarn install --production=true \
+    && apk del .build-deps
 
-RUN printenv
-
-#! Install the build requirements for bcrypt
-RUN apk update && apk upgrade \
-    && apk --no-cache add --virtual builds-deps build-base python \
-    && yarn add node-gyp node-pre-gyp
-
-# Set production flag so dev dependencies aren't installed
-RUN yarn install --production=true
-
+# Copy the actual source code
 COPY . .
 
+# STAGE 2: The Runner (The "Finished Building")
 FROM node:10.13.0-alpine
 
 WORKDIR /app/server
 
-# Copy the server from the build container
+# Only copy the essential bits from the builder
 COPY --from=builder /app/server .
 
-ENV MONGO_URI=$MONGO_URI
-ENV PORT=$SRV_PORT
-ENV NODE_ENV=$NODE_ENV
-# ENV MONGO_URI mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_URI}
-# ENV PORT ${SRV_PORT}
-# ENV NODE_ENV ${NODE_ENV}
+# Environment variables are passed at runtime by docker-compose, 
+# but we define defaults here to match your blueprint
+ENV PORT=4000
+ENV NODE_ENV=staging
 
-RUN printenv
-
+# No more nodemon here—just the stable engine
 CMD ["node", "server.js"]

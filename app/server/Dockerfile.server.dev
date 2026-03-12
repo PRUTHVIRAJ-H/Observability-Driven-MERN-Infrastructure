@@ -1,22 +1,20 @@
-FROM node
+FROM node:18-alpine 
 
-# Creates /app/server folder aand sets it as the working directory for any RUN, CMD, ENTRYPOINT, 
-# COPY and ADD instructions that follow it
+# 1. Use a specific, lightweight version (Alpine) to save disk space
 WORKDIR /app
-RUN mkdir ./server
 
-# Do not mix npm and yarn. Use only yarn (package-lock.json will not be copied)
+# 2. Optimization: Copy package files FIRST. 
+# This leverages Docker Caching so 'yarn install' only runs if dependencies change.
+COPY package.json yarn.lock* ./
 
-COPY ./src ./server
-COPY package.json .
-COPY yarn* .
+# 3. Install dependencies and nodemon
+RUN yarn install && yarn global add nodemon
 
-# Install dependencies
-RUN yarn
+# 4. Copy the rest of the source code
+COPY . .
 
-# Using nodemon on dev environment for restart on code changes (requires folder mapping - TO DO).
-# On staging and prod COPY should be reeplaced with ADD to make imutable images.
-# (COPY copies files on run. ADD copies files on build)
-RUN yarn global add nodemon
+# 5. Blueprint Port
+EXPOSE 4000
 
-CMD nodemon ./server/server.js
+# 6. Runtime command
+CMD ["nodemon", "src/server.js"]

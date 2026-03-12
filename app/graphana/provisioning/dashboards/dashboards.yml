@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'TelemetryHub'      # Internal name for the provider
+    orgId: 1
+    folder: 'Systems'        # The name of the folder inside the Grafana UI
+    type: file
+    disableDeletion: false   # Allows you to delete them in the UI if needed
+    editable: true           # Allows you to edit the UI and save back to JSON
+    options:
+      # This is the path INSIDE the Grafana container
+      path: /var/lib/grafana/dashboards
