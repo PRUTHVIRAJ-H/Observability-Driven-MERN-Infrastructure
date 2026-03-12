@@ -1,103 +1,57 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const App = () => {
-    // 1. State Hooks
-    const [serverStatus, setServerStatus] = useState("FETCHING DETAILS...");
-    const [isOnline, setIsOnline] = useState(false);
-    const [userName, setUserName] = useState("");
-    const [searchName, setSearchName] = useState("");
-    const [searchResult, setSearchResult] = useState("");
+const SERVER_URL = "https://improved-space-cod-q7pwvqvv477x369xv-4000.app.github.dev";
+const GRAFANA_URL = "https://improved-space-cod-q7pwvqvv477x369xv-5000.app.github.dev";
+const DASHBOARD_UID = "gw5k24"; // Your confirmed UID
 
-    const metrics = [
-        { id: 1, name: "Active User Sessions", panelId: "1", type: "traffic" },
-        { id: 2, name: "Backend CPU Load", panelId: "2", type: "health" },
-        { id: 3, name: "Database Query Rate", panelId: "3", type: "health" },
-        { id: 4, name: "API Latency (ms)", panelId: "4", type: "traffic" }
+const App = () => {
+    const [isOnline, setIsOnline] = useState(false);
+
+    // Data for your "Map" - Add or remove panels here
+    const dashboardPanels = [
+        { id: 1, title: "System Throughput", panelId: "1", color: "#3498db" },
+        { id: 2, title: "Database Health", panelId: "2", color: "#2ecc71" },
+        { id: 3, title: "Server Latency", panelId: "3", color: "#f1c40f" },
+        { id: 4, title: "Error Rate", panelId: "4", color: "#e74c3c" }
     ];
 
-    // 2. The Heartbeat Check (Runs once on mount)
     useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                // Points to your updated /user route
-                await axios.get("https://improved-space-cod-q7pwvqvv477x369xv-4000.app.github.dev/");
-                setServerStatus("SYSTEM ONLINE ✅");
-                setIsOnline(true);
-            } catch (error) {
-                setServerStatus("SYSTEM OFFLINE ❌");
-                setIsOnline(false);
-            }
-        };
-        checkStatus();
+        axios.get(`${SERVER_URL}/user`)
+            .then(() => setIsOnline(true))
+            .catch(() => setIsOnline(false));
     }, []);
 
-    // 3. Dynamic Action: Add User (POST)
-    const addUser = async () => {
-        try {
-            const res = await axios.post("http://localhost:4000/user/add", { name: userName });
-            alert(res.data);
-        } catch (err) {
-            alert("Pipeline Error: Could not add user");
-        }
-    };
-
-    // 4. Dynamic Action: Search User (GET with Query Params)
-    const searchUser = async () => {
-        try {
-            const res = await axios.get(`http://localhost:4000/user?name=${searchName}`);
-            setSearchResult(res.data);
-        } catch (err) {
-            setSearchResult("User not found in database.");
-        }
-    };
-
     return (
-        <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f4f4f4', minHeight: '100vh', padding: '20px' }}>
+        <div style={{ backgroundColor: '#1a1a1a', minHeight: '100vh', color: 'white', padding: '20px', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif' }}>
             
-            {/* Header Bar */}
-            <header style={{ 
-                backgroundColor: isOnline ? '#27ae60' : '#c0392b', 
-                color: 'white', padding: '15px', borderRadius: '8px', marginBottom: '20px' 
-            }}>
-                <h1>DevOps Telemetry Hub: {serverStatus}</h1>
-            </header>
-
-            {/* Dynamic Controls Section */}
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', flex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <h3>Register Telemetry User</h3>
-                    <input 
-                        type="text" 
-                        placeholder="Enter Name" 
-                        onChange={(e) => setUserName(e.target.value)} 
-                    />
-                    <button onClick={addUser}>Add to System</button>
-                </div>
-
-                <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', flex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <h3>Database Lookup</h3>
-                    <input 
-                        type="text" 
-                        placeholder="Search Name" 
-                        onChange={(e) => setSearchName(e.target.value)} 
-                    />
-                    <button onClick={searchUser}>Query Record</button>
-                    <p style={{ marginTop: '10px', fontWeight: 'bold' }}>{searchResult}</p>
+            {/* Header Area */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '20px', marginBottom: '30px' }}>
+                <h1 style={{ margin: 0 }}>PRUTHVIRAJ <span style={{ fontWeight: 300 }}>SYSTEMS</span></h1>
+                <div style={{ padding: '8px 15px', borderRadius: '20px', backgroundColor: isOnline ? '#27ae6022' : '#e74c3c22', border: `1px solid ${isOnline ? '#27ae60' : '#e74c3c'}`, color: isOnline ? '#2ecc71' : '#e74c3c' }}>
+                    ● {isOnline ? "OPERATIONAL" : "DATABASE LINK BROKEN"}
                 </div>
             </div>
 
-            {/* Monitoring Grid */}
+            {/* The Dashboard Grid using .map() */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
-                {metrics.map(metric => (
-                    <div key={metric.id} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '10px' }}>
-                        <h3>{metric.name} <span style={{ fontSize: '12px', color: '#888' }}>({metric.type.toUpperCase()})</span></h3>
+                {dashboardPanels.map((panel) => (
+                    <div key={panel.id} style={{ backgroundColor: '#252525', borderRadius: '12px', padding: '15px', borderTop: `4px solid ${panel.color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
+                        <h3 style={{ marginTop: 0, fontSize: '1.1rem', letterSpacing: '1px' }}>{panel.title}</h3>
                         <iframe
-                            src={`http://localhost:3001/d-solo/your-uid?orgId=1&panelId=${metric.panelId}&refresh=5s`}
-                            width="100%" height="250" frameBorder="0" title={metric.name}
+                            src={`${GRAFANA_URL}/d-solo/${DASHBOARD_UID}/test?orgId=1&panelId=${panel.panelId}&refresh=5s&theme=dark`}
+                            width="100%" 
+                            height="250" 
+                            frameBorder="0"
+                            style={{ borderRadius: '8px' }}
                         ></iframe>
                     </div>
                 ))}
+            </div>
+
+            {/* Footer / Quick Stats */}
+            <div style={{ marginTop: '40px', padding: '20px', borderTop: '1px solid #333', textAlign: 'center', color: '#666' }}>
+                Telemetry Feed Active • Real-time Monitoring Enabled
             </div>
         </div>
     );
