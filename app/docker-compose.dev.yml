@@ -9,14 +9,13 @@ services:
       - REACT_APP_PORT=3000
       - CHOKIDAR_USEPOLLING=true
       - HOST=0.0.0.0
-      - WDS_SOCKET_PORT=0 # Helps with HMR in Codespaces
-      - NODE_OPTIONS=--openssl-legacy-provider
-      - HOST=0.0.0.0 # Ensures it works in Codespaces
+      - WDS_SOCKET_PORT=0 
     ports:
       - "3000:3000"
     volumes:
-      - ./client/src:/app/client/src
-    command: npm run start
+      - ./client:/app/client
+      - /app/client/node_modules
+    command: yarn start
     stdin_open: true
     tty: true
 
@@ -30,14 +29,18 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - ./server/src:/app/server/src
+      - ./server:/app/server
+      - /app/server/node_modules
     depends_on:
       - db
+    command: nodemon src/server.jsx
 
   db:
-    image: mongo
+    image: mongo:latest
     ports:
       - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
     restart: always
 
   prometheus:
@@ -46,7 +49,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9000:9090" # Your Blueprint: Port 9000
+      - "9000:9090"
     depends_on:
       - server
 
@@ -54,7 +57,7 @@ services:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - "5000:3000" # Your Blueprint: Port 5000
+      - "5000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ALLOW_EMBEDDING=true
@@ -62,3 +65,6 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     depends_on:
       - prometheus
+
+volumes:
+  mongodb_data:

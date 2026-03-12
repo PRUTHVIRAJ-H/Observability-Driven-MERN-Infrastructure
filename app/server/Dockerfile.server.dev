@@ -1,21 +1,22 @@
-FROM node:18-alpine 
+# 1. Use Node 22 (Full) for maximum compatibility and stability
+FROM node:22
 
-# 1. Use a specific, lightweight version (Alpine) to save disk space
-WORKDIR /app
+# 2. Set the working directory
+WORKDIR /app/server
 
-# 2. Optimization: Copy package files FIRST. 
-# This leverages Docker Caching so 'yarn install' only runs if dependencies change.
+# 3. Copy dependency files first to leverage Docker layer caching
 COPY package.json yarn.lock* ./
 
-# 3. Install dependencies and nodemon
-RUN yarn install && yarn global add nodemon 
-RUN npm install cors
+# 4. Install dependencies
+# We use yarn install and then add nodemon for development
+RUN yarn install && yarn global add nodemon
 
-# 4. Copy the rest of the source code
+# 5. Copy the rest of the backend source code
 COPY . .
 
-# 5. Blueprint Port
+# 6. Expose the API port (as defined in your server.js)
 EXPOSE 4000
 
-# 6. Runtime command
-CMD ["nodemon", "src/server.js"]
+# 7. Start the server using nodemon for hot-reloading
+# This ensures the server restarts whenever you edit server.js
+CMD ["nodemon", "src/server.jsx"]
