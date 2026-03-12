@@ -1,31 +1,28 @@
 ```mermaid
-graph TD
-    subgraph Client_Tier [Client Tier]
-        React[React Terminal UI]
+graph LR
+    subgraph UI [React Frontend]
+        Terminal[Terminal UI]
+        StressBtn[Stress Test Button]
     end
 
-    subgraph Logic_Tier [Logic Tier - Node.js]
-        Express[Express Server]
-        PromClient[prom-client]
-        StressEngine[Stress Test Logic]
+    subgraph App [Backend API]
+        Node[Node.js / Express]
+        Metrics[(In-Memory Metrics)]
     end
 
-    subgraph Data_Tier [Data Tier]
-        Mongo[(MongoDB)]
+    subgraph Infrastructure
+        DB[(MongoDB)]
+        Prom[Prometheus]
+        Grafana[Grafana]
     end
 
-    subgraph Monitoring_Stack [Monitoring Stack]
-        Prom[Prometheus Server]
-        Grafana[Grafana Dashboard]
-    end
-
-    %% Connections
-    React -->|POST /user/add| Express
-    React -->|POST /stress?n=X| StressEngine
-    StressEngine -->|Parallel Connections| Mongo
-    Express -->|Update Counters| PromClient
-    Prom -->|Scrape /metrics| PromClient
-    Grafana -->|Query| Prom
+    %% Flow
+    Terminal -->|API Call| Node
+    StressBtn -->|Query Params| Node
+    Node -->|Stress Connections| DB
+    Node -->|Update State| Metrics
+    Prom -.->|Scrape /metrics| Metrics
+    Grafana -.->|Query| Prom
 
 
 
