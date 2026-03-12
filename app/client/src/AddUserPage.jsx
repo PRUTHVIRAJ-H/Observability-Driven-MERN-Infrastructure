@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const AddUserPage = ({ SERVER_URL }) => {
+    const [stressLevel, setStressLevel] = useState(10);
     const [name, setName] = useState("");
     const [logs, setLogs] = useState(["[SYSTEM] Ready for provisioning..."]);
     const [isProcessing, setIsProcessing] = useState(false);
-
+    
     const addLog = (message) => {
         const timestamp = new Date().toLocaleTimeString();
         setLogs(prev => [`[${timestamp}] ${message}`, ...prev].slice(0, 5));
@@ -26,6 +27,21 @@ const AddUserPage = ({ SERVER_URL }) => {
         } finally {
             setIsProcessing(false);
         }
+    };
+
+
+    const runStressTest = async () => {
+       setIsProcessing(true);
+    try {
+        const response = await axios.post(`${SERVER_URL}/stress`, { 
+            intensity: stressLevel 
+        });
+        alert(response.data.message);
+    } catch (err) {
+        alert("Stress test failed to execute.");
+    } finally {
+        setIsProcessing(false);
+    }
     };
 
     return (
@@ -83,6 +99,23 @@ const AddUserPage = ({ SERVER_URL }) => {
                         {isProcessing && <span style={{ color: '#38bdf8' }}>_</span>}
                     </div>
                 </div>
+            </div>
+
+
+            <div style={{ marginTop: '30px', borderTop: '1px solid #334155', paddingTop: '20px' }}>
+                <h3>System Stress Test</h3>
+            <select 
+                value={stressLevel} 
+                onChange={(e) => setStressLevel(Number(e.target.value))}
+                style={{ padding: '10px', borderRadius: '4px', background: '#1e293b', color: 'white' }}
+            >
+            <option value={10}>Light Load (10 Conns)</option>
+            <option value={50}>Medium Load (50 Conns)</option>
+            <option value={100}>High Load (100 Conns)</option>
+            </select>
+            <button onClick={runStressTest} style={{ marginLeft: '10px', backgroundColor: '#ef4444' }}>
+                Trigger Stress
+            </button>
             </div>
         </div>
     );

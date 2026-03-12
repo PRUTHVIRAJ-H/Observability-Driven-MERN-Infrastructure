@@ -3,10 +3,10 @@ import React from 'react';
 const Network = ({ GRAFANA_URL, DASHBOARD_UID }) => {
     // Configuration for your Monitoring Feeds
     const activeFeeds = [
-    { id: 1, title: "PROVISIONING RATE", panelId: "1", color: "#38bdf8" }, // Linked to user_add
-    { id: 2, title: "SYSTEM THROUGHPUT", panelId: "2", color: "#4ade80" },  // Linked to web_app_calls
-    { id: 3, title: "DB CONNECTION STATUS", panelId: "3", color: "#fbbf24" }, // Linked to db_success
-    { id: 4, title: "API RESPONSE LATENCY", panelId: "4", color: "#f87171" }  // Linked to duration_ms
+    { id: 1, title: "TOTAL DB CONNECTIONS", panelId: "1", color: "#38bdf8" }, // Linked to user_add
+    { id: 2, title: "CPU PROCESS TIME", panelId: "2", color: "#4ade80" },  // Linked to web_app_calls
+    { id: 3, title: "EVENT LOOP LAG", panelId: "3", color: "#fbbf24" }, // Linked to db_success
+    { id: 4, title: "TOTAL API CALLS", panelId: "4", color: "#f87171" }  // Linked to duration_ms
 ];
 
     return (

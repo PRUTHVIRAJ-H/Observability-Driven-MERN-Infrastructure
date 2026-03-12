@@ -47,6 +47,11 @@ const httpRequestDurationMicroseconds = new Prometheus.Histogram({
     buckets: [0.1, 5, 15, 50, 100, 200, 500]
 });
 
+const dbTotalConnections = new Prometheus.Counter({
+    name: 'MERN_APP_db_connections',
+    help: 'Total number of server->db connections'
+});
+
 /**
  * DATABASE CONFIGURATION
  */
@@ -59,10 +64,14 @@ const User = mongoose.model("User", userSchema);
 const connectWithRetry = () => {
     mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
         .then(() => {
+            console.log("Stress")
+            dbTotalConnections.inc()
             dbCallsSuccessTotal.inc();
             console.log("MongoDB connected successfully");
         })
         .catch(err => {
+            console.log("Stress")
+            dbTotalConnections.inc()
             dbCallsFailTotal.inc();
             console.error("MongoDB connection failed, retrying in 5s...", err);
             setTimeout(connectWithRetry, 5000);
@@ -89,6 +98,7 @@ app.use((req, res, next) => {
 
 // GET: Basic connectivity check (used by your React Header status badge)
 app.get("/", (req, res) => {
+    appCallsTotal.inc();
     res.status(200).send("Infrastructure API Online");
 });
 
@@ -101,6 +111,7 @@ app.get("/welcome", async (req, res) => {
 
 // POST: Add new user (Used by your AddUserPage.js)
 app.post("/user/add", async (req, res) => {
+    appCallsTotal.inc();
     try {
         const newUser = new User({ name: req.body.name });
         await newUser.save();
@@ -113,8 +124,30 @@ app.post("/user/add", async (req, res) => {
 
 // GET: Metrics endpoint for Prometheus to scrape
 app.get("/metrics", async (req, res) => {
+    appCallsTotal.inc();
     res.set('Content-Type', Prometheus.register.contentType);
     res.send(await Prometheus.register.metrics());
+});
+
+app.post("/stress", async (req, res) => {
+    {
+        let n = req.body.stressLevel || 10;
+        for(i = 0; i < n; i++){
+        mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+        .then(() => {
+            dbTotalConnections.inc()
+            dbCallsSuccessTotal.inc();
+            console.log("MongoDB connected successfully");
+        })
+        .catch(err => {
+            dbTotalConnections.inc()
+            dbCallsFailTotal.inc();
+            console.error("MongoDB connection failed, retrying in 5s...", err);
+            setTimeout(connectWithRetry, 5000);
+        });
+        }
+        res.status(200).send({ message: `Stress test initiated for ${n} connections` });
+    }
 });
 
 app.listen(port, () => console.log(`Backend listening on port ${port}`));

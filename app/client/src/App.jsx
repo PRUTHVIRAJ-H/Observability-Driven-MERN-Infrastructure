@@ -22,7 +22,6 @@ const App = () => {
         const verifySystemLink = () => {
             axios.get(`${SERVER_URL}/`)
                 .then((res) => {setIsOnline(true);
-                      alert("Connection Successful: " + res.data)
                      }
                     )
                 .catch(() => setIsOnline(false));
